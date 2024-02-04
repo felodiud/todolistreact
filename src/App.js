@@ -6,29 +6,38 @@ import { useState, useEffect } from "react";
 function App() {
   const [list, setList] = useState([]);
   const [inputValue, setinputValue] = useState("");
-  const [newlist, setNewlist] = useState([]);
   const [uservalue, setUservalue] = useState("");
 
   const postfetch = () => {
-    fetch(`http://assets.breatheco.de/apis/fake/todos/user/${uservalue}`, {
-      method: "POST",
-      body: JSON.stringify([]),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    return fetch(
+      `https://playground.4geeks.com/apis/fake/todos/user/${uservalue}`,
+      {
+        method: "POST",
+        body: JSON.stringify([]),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
       .then((res) => res.json())
-      .then((result) => console.log(result));
+      .then((result) => {
+        return result;
+      });
   };
 
   const getFetch = () => {
-    fetch(`http://assets.breatheco.de/apis/fake/todos/user/${uservalue}`)
+    return fetch(
+      `https://playground.4geeks.com/apis/fake/todos/user/${uservalue}`
+    )
       .then((res) => res.json())
-      .then((result) => setList(result));
+      .then((result) => {
+        setList(result);
+        return result;
+      });
   };
 
   const putFetch = (object) => {
-    fetch(`http://assets.breatheco.de/apis/fake/todos/user/${uservalue}`, {
+    fetch(`https://playground.4geeks.com/apis/fake/todos/user/${uservalue}`, {
       method: "PUT",
       body: JSON.stringify(object),
       headers: {
@@ -40,7 +49,7 @@ function App() {
   };
 
   const delFetch = () => {
-    fetch(`http://assets.breatheco.de/apis/fake/todos/user/${uservalue}`, {
+    fetch(`https://playground.4geeks.com/apis/fake/todos/user/${uservalue}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -52,17 +61,31 @@ function App() {
 
   const handleonclick = () => {
     const object = { label: inputValue, done: false };
-    setNewlist(list);
-    newlist.push(object);
-    putFetch(newlist);
+    const newTodoList = [...list, object];
+    setList(newTodoList);
+    putFetch(newTodoList);
     setinputValue("");
   };
 
-  const handleuserclick = () => {
-    console.log(uservalue);
-    postfetch();
-    getFetch();
-    console.log(list);
+  const handleuserclick = async () => {
+    const response = await postfetch();
+    if (response && response.msg === "The user exist") {
+      const userData = await getFetch();
+    }
+  };
+
+  const handleDelete = (index) => {
+    const deleteTodo = [...list];
+    deleteTodo.splice(index, 1);
+    setList(deleteTodo);
+    putFetch(deleteTodo);
+  };
+
+  const handleSupr = () => {
+    delFetch();
+    setinputValue("");
+    setList([]);
+    setUservalue("");
   };
 
   return (
@@ -80,12 +103,19 @@ function App() {
           <div className="col-auto">
             <button
               type="button"
-              className="btn btn-primary mb-3"
+              className="btn btn-primary m-1"
               onClick={() => {
                 handleuserclick();
               }}
             >
-              Create User
+              Get list
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary m-1"
+              onClick={() => handleSupr()}
+            >
+              delete all
             </button>
           </div>
         </form>
@@ -96,16 +126,16 @@ function App() {
           <div className="card-body">
             <h5 className="card-title text-center">My list </h5>
           </div>
-          <div className="input-group mb-3">
+          <div className="input-group mb-3 pe-5  ps-5">
             <input
               type="text"
-              className="form-control m-1"
+              className="form-control mb-1 mt-1 ms-1"
               onChange={(e) => setinputValue(e.target.value)}
               value={inputValue}
             />
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary mb-1 mt-1"
               onClick={() => {
                 handleonclick();
               }}
@@ -114,22 +144,20 @@ function App() {
             </button>
           </div>
           <ul className="list-group list-group-flush">
-            {list.map((item, index) => (
-              <li className="list-group-item" key={index}>
-                {item.label}
-              </li>
-            ))}
+            {list != [] &&
+              list.map((item, index) => (
+                <li
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                  key={index}
+                >
+                  {item.label}
+                  <i
+                    onClick={() => handleDelete(index)}
+                    className="fa-solid fa-trash d-flex justify-content-end"
+                  ></i>
+                </li>
+              ))}
           </ul>
-          <div className="col-md-12 text-center">
-            <i
-              className="fa-solid fa-trash align-items-center"
-              onClick={() => {
-                delFetch();
-              }}
-            >
-              delete list and username
-            </i>
-          </div>
         </div>
       </div>
     </div>
